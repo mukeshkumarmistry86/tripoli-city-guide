@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Tripoli Guide — Plans Admin</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body { background: #f5f5f5; padding: 24px; }
+    .card { box-shadow: 0 2px 8px rgba(0,0,0,0.08); border: none; }
+    .color-teal { color: #0f7863; }
+    .btn-teal { background: #0f7863; color: white; }
+    .nav-link.active { background: #0f7863 !important; color: white !important; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1 class="mb-4 color-teal">📅 Tripoli Guide — Plans Admin</h1>
+
+    <ul class="nav nav-pills mb-4">
+      <li class="nav-item"><a class="nav-link" href="index.html">Places</a></li>
+      <li class="nav-item"><a class="nav-link" href="routes.html">Routes</a></li>
+      <li class="nav-item"><a class="nav-link active" href="plans.html">Plans</a></li>
+    </ul>
+
+    <div class="card mb-4">
+      <div class="card-header">Add New Plan</div>
+      <div class="card-body">
+        <form id="planForm">
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label">Title *</label>
+              <input type="text" class="form-control" name="title" required>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Time *</label>
+              <input type="text" class="form-control" name="time" required placeholder="This evening at 6:30 PM">
+            </div>
+            <div class="col-md-3">
+              <label class="form-label">Duration *</label>
+              <input type="text" class="form-control" name="duration" required placeholder="3 hours">
+            </div>
+            <div class="col-md-3">
+              <label class="form-label">Stops Count *</label>
+              <input type="number" class="form-control" name="stopsCount" required value="3">
+            </div>
+            <div class="col-md-3">
+              <label class="form-label">Distance</label>
+              <input type="text" class="form-control" name="distance" placeholder="1.1 km">
+            </div>
+            <div class="col-md-3">
+              <label class="form-label">My Own Plan?</label>
+              <select class="form-select" name="isOwnPlan">
+                <option value="false">No (Suggested)</option>
+                <option value="true">Yes (Mine)</option>
+              </select>
+            </div>
+            <div class="col-12">
+              <button type="submit" class="btn btn-teal">Save Plan</button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">All Plans</div>
+      <div class="card-body">
+        <table class="table table-hover">
+          <thead>
+            <tr><th>Title</th><th>Time</th><th>Duration</th><th>Stops</th><th>Distance</th><th>Type</th><th></th></tr>
+          </thead>
+          <tbody id="plansBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    async function loadPlans() {
+      const res = await fetch('/api/plans');
+      const plans = await res.json();
+      document.getElementById('plansBody').innerHTML = plans.map(p => `
+        <tr>
+          <td>${p.title}</td>
+          <td>${p.time}</td>
+          <td>${p.duration}</td>
+          <td>${p.stopsCount}</td>
+          <td>${p.distance}</td>
+          <td>${p.isOwnPlan ? 'My Own' : 'Suggested'}</td>
+          <td><button class="btn btn-sm btn-danger" onclick="deletePlan('${p._id}')">Delete</button></td>
+        </tr>
+      `).join('');
+    }
+
+    document.getElementById('planForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const data = Object.fromEntries(new FormData(e.target));
+      const res = await fetch('/api/plans', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+      if (!res.ok) { alert('Failed: ' + (await res.json()).error); return; }
+      e.target.reset();
+      loadPlans();
+    });
+
+    async function deletePlan(id) {
+      if (!confirm('Delete this plan?')) return;
+      await fetch('/api/plans/' + id, { method: 'DELETE' });
+      loadPlans();
+    }
+
+    loadPlans();
+  </script>
+</body>
+</html>

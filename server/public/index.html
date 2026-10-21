@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tripoli Guide — Places Admin</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body { background: #f5f5f5; padding: 24px; }
+    .card { box-shadow: 0 2px 8px rgba(0,0,0,0.08); border: none; }
+    .color-teal { color: #0f7863; }
+    .btn-teal { background: #0f7863; color: white; }
+    .btn-teal:hover { background: #0a5a4a; color: white; }
+    .nav-link.active { background: #0f7863 !important; color: white !important; }
+    img.thumb { width: 60px; height: 60px; object-fit: cover; border-radius: 8px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1 class="mb-4 color-teal">🏛️ Tripoli Guide — Admin</h1>
+
+    <ul class="nav nav-pills mb-4">
+      <li class="nav-item"><a class="nav-link active" href="index.html">Places</a></li>
+      <li class="nav-item"><a class="nav-link" href="routes.html">Routes</a></li>
+      <li class="nav-item"><a class="nav-link" href="plans.html">Plans</a></li>
+    </ul>
+
+    <div class="card mb-4">
+      <div class="card-header">Add New Place</div>
+      <div class="card-body">
+        <form id="placeForm" enctype="multipart/form-data">
+          <div class="row g-3">
+            <div class="col-md-4">
+              <label class="form-label">Name *</label>
+              <input type="text" class="form-control" name="name" required>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Category *</label>
+              <select class="form-select" name="category" required>
+                <option value="Historical">Historical</option>
+                <option value="Food">Food</option>
+                <option value="Museum">Museum</option>
+                <option value="Park">Park</option>
+                <option value="Shopping">Shopping</option>
+                <option value="Beach">Beach</option>
+              </select>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Location *</label>
+              <input type="text" class="form-control" name="location" required placeholder="e.g., Medina">
+            </div>
+            <div class="col-md-3">
+              <label class="form-label">Rating</label>
+              <input type="number" step="0.1" min="0" max="5" class="form-control" name="rating" value="4.5">
+            </div>
+            <div class="col-md-3">
+              <label class="form-label">Price</label>
+              <input type="text" class="form-control" name="price" value="Free" placeholder="Free or 40 LYD">
+            </div>
+            <div class="col-md-3">
+              <label class="form-label">Featured</label>
+              <select class="form-select" name="isFeatured">
+                <option value="false">No</option>
+                <option value="true">Yes</option>
+              </select>
+            </div>
+            <div class="col-md-3">
+              <label class="form-label">Image *</label>
+              <input type="file" class="form-control" name="image" accept="image/*" required>
+            </div>
+            <div class="col-12">
+              <label class="form-label">Description</label>
+              <textarea class="form-control" name="description" rows="2"></textarea>
+            </div>
+            <div class="col-12">
+              <button type="submit" class="btn btn-teal">Upload Place</button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">All Places</div>
+      <div class="card-body">
+        <table class="table table-hover">
+          <thead>
+            <tr><th>Image</th><th>Name</th><th>Category</th><th>Location</th><th>Rating</th><th>Price</th><th>Featured</th><th></th></tr>
+          </thead>
+          <tbody id="placesBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    async function loadPlaces() {
+      const res = await fetch('/api/places');
+      const places = await res.json();
+      document.getElementById('placesBody').innerHTML = places.map(p => `
+        <tr>
+          <td><img src="${p.imageUrl}" class="thumb"></td>
+          <td>${p.name}</td>
+          <td>${p.category}</td>
+          <td>${p.location}</td>
+          <td>⭐ ${p.rating}</td>
+          <td>${p.price}</td>
+          <td>${p.isFeatured ? '✅' : '—'}</td>
+          <td><button class="btn btn-sm btn-danger" onclick="deletePlace('${p._id}')">Delete</button></td>
+        </tr>
+      `).join('');
+    }
+
+    document.getElementById('placeForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const fd = new FormData(e.target);
+      const res = await fetch('/api/places', { method: 'POST', body: fd });
+      if (!res.ok) { alert('Failed: ' + (await res.json()).error); return; }
+      e.target.reset();
+      loadPlaces();
+    });
+
+    async function deletePlace(id) {
+      if (!confirm('Delete this place?')) return;
+      await fetch('/api/places/' + id, { method: 'DELETE' });
+      loadPlaces();
+    }
+
+    loadPlaces();
+  </script>
+</body>
+</html>

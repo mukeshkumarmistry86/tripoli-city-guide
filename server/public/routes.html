@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Tripoli Guide — Routes Admin</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body { background: #f5f5f5; padding: 24px; }
+    .card { box-shadow: 0 2px 8px rgba(0,0,0,0.08); border: none; }
+    .color-teal { color: #0f7863; }
+    .btn-teal { background: #0f7863; color: white; }
+    .nav-link.active { background: #0f7863 !important; color: white !important; }
+    img.thumb { width: 60px; height: 60px; object-fit: cover; border-radius: 8px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1 class="mb-4 color-teal">🗺️ Tripoli Guide — Routes Admin</h1>
+
+    <ul class="nav nav-pills mb-4">
+      <li class="nav-item"><a class="nav-link" href="index.html">Places</a></li>
+      <li class="nav-item"><a class="nav-link active" href="routes.html">Routes</a></li>
+      <li class="nav-item"><a class="nav-link" href="plans.html">Plans</a></li>
+    </ul>
+
+    <div class="card mb-4">
+      <div class="card-header">Add New Route</div>
+      <div class="card-body">
+        <form id="routeForm" enctype="multipart/form-data">
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label">Title *</label>
+              <input type="text" class="form-control" name="title" required>
+            </div>
+            <div class="col-md-3">
+              <label class="form-label">Category *</label>
+              <input type="text" class="form-control" name="category" required placeholder="Historical">
+            </div>
+            <div class="col-md-3">
+              <label class="form-label">Difficulty *</label>
+              <select class="form-select" name="difficulty" required>
+                <option>Easy</option><option>Medium</option><option>Hard</option>
+              </select>
+            </div>
+            <div class="col-md-3">
+              <label class="form-label">Duration *</label>
+              <input type="text" class="form-control" name="duration" required placeholder="4 hours">
+            </div>
+            <div class="col-md-3">
+              <label class="form-label">Distance *</label>
+              <input type="text" class="form-control" name="distance" required placeholder="3.2 km">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Image *</label>
+              <input type="file" class="form-control" name="image" accept="image/*" required>
+            </div>
+            <div class="col-12">
+              <label class="form-label">Stops (comma separated)</label>
+              <input type="text" class="form-control" name="stops" placeholder="Tripoli Medina, Arch of Marcus Aurelius, Gurgi Mosque">
+            </div>
+            <div class="col-12">
+              <button type="submit" class="btn btn-teal">Upload Route</button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">All Routes</div>
+      <div class="card-body">
+        <table class="table table-hover">
+          <thead>
+            <tr><th>Image</th><th>Title</th><th>Category</th><th>Duration</th><th>Distance</th><th>Difficulty</th><th>Stops</th><th></th></tr>
+          </thead>
+          <tbody id="routesBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    async function loadRoutes() {
+      const res = await fetch('/api/routes');
+      const routes = await res.json();
+      document.getElementById('routesBody').innerHTML = routes.map(r => `
+        <tr>
+          <td><img src="${r.imageUrl}" class="thumb"></td>
+          <td>${r.title}</td>
+          <td>${r.category}</td>
+          <td>${r.duration}</td>
+          <td>${r.distance}</td>
+          <td>${r.difficulty}</td>
+          <td>${r.stopsCount}</td>
+          <td><button class="btn btn-sm btn-danger" onclick="deleteRoute('${r._id}')">Delete</button></td>
+        </tr>
+      `).join('');
+    }
+
+    document.getElementById('routeForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const fd = new FormData(e.target);
+      const res = await fetch('/api/routes', { method: 'POST', body: fd });
+      if (!res.ok) { alert('Failed: ' + (await res.json()).error); return; }
+      e.target.reset();
+      loadRoutes();
+    });
+
+    async function deleteRoute(id) {
+      if (!confirm('Delete this route?')) return;
+      await fetch('/api/routes/' + id, { method: 'DELETE' });
+      loadRoutes();
+    }
+
+    loadRoutes();
+  </script>
+</body>
+</html>
