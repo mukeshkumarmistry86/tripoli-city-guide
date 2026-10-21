@@ -1,3 +1,4 @@
+//remaned from plan.js to Plan.js
 const mongoose = require('mongoose');
 
 const PlanPlaceSchema = new mongoose.Schema({

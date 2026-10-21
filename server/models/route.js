@@ -1,3 +1,4 @@
+//remaned from route.js to Route.js
 const mongoose = require('mongoose');
 
 const RouteSchema = new mongoose.Schema({
