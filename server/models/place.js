@@ -1,4 +1,3 @@
-//remaned from place.js to Place.js
 const mongoose = require('mongoose');
 
 const PlaceSchema = new mongoose.Schema({
