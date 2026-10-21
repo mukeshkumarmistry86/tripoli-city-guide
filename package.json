@@ -1,0 +1,5 @@
+{
+  "dependencies": {
+    "multer-storage-cloudinary-v2": "^1.0.3"
+  }
+}
